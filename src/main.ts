@@ -1,32 +1,55 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
+import * as readline from 'readline';
+import { Scanner } from './scanner';
+import { Token } from './token';
+import { readFileSync } from 'fs';
+
+function main() {
+  const args = process.argv.slice(2);
+  if (args.length > 1) {
+    console.log('Usage: tslox [script]');
+    process.exit(64);
+  } else if (args.length === 1) {
+    const file = args[0];
+    runFile(file);
+  } else {
+    runPrompt();
+  }
 }
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-  name: string,
-  delay: number = Delays.Medium,
-): Promise<string> {
-  return new Promise((resolve: (value?: string) => void) =>
-    setTimeout(() => resolve(`Hello, ${name}`), delay),
-  );
+function runFile(file) {
+  const buffer = readFileSync(file);
+  const source = buffer.toString();
+  run(source);
+}
+function runPrompt() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.setPrompt('> ');
+  rl.prompt();
+  rl.on('line', (line) => {
+    run(line);
+    rl.prompt();
+  });
+  rl.on('SIGINT', () => {
+    rl.question('Are you sure you want to exit? ', (answer) => {
+      if (answer.match(/^y(es)?$/i)) {
+        process.exit(0);
+      } else {
+        rl.prompt();
+      }
+    });
+  });
 }
 
-// Below are examples of using ESLint errors suppression
-// Here it is suppressing a missing return type definition for the greeter function.
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function greeter(name: string) {
-  return await delayedHello(name, Delays.Long);
+function run(source: string) {
+  const scanner = new Scanner(source);
+  const tokens: Token[] = scanner.scanTokens();
+  tokens.forEach((token) => {
+    console.log(token);
+  });
 }
+
+main();
