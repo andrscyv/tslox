@@ -1,3 +1,4 @@
+import { error } from './error';
 import { Token, TokenType } from './token';
 
 export class Scanner {
@@ -80,6 +81,7 @@ export class Scanner {
         this.addToken(TokenType.LEFT_PAREN);
         break;
       default:
+        error(this.line, 'Unexpected character.');
         break;
     }
   }
