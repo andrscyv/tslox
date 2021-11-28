@@ -3,6 +3,8 @@ import { Scanner } from './scanner';
 import { Token } from './token';
 import { readFileSync } from 'fs';
 
+let hadError = false;
+
 function main() {
   const args = process.argv.slice(2);
   if (args.length > 1) {
@@ -20,6 +22,9 @@ function runFile(file) {
   const buffer = readFileSync(file);
   const source = buffer.toString();
   run(source);
+  if (hadError) {
+    process.exit(65);
+  }
 }
 function runPrompt() {
   const rl = readline.createInterface({
@@ -31,6 +36,7 @@ function runPrompt() {
   rl.prompt();
   rl.on('line', (line) => {
     run(line);
+    hadError = false;
     rl.prompt();
   });
   rl.on('SIGINT', () => {
