@@ -1,4 +1,4 @@
-import { error } from './error';
+import { ErrorReporter } from './error';
 import { Token, TokenType } from './token';
 
 export class Scanner {
@@ -7,8 +7,7 @@ export class Scanner {
   line: number;
   private tokens: Token[];
 
-  constructor(private source: string) {
-    console.log('Scanner.constructor', source);
+  constructor(private source: string, private reporter: ErrorReporter) {
     this.currentIdx = 0;
     this.startIdx = 0;
     this.line = 1;
@@ -47,6 +46,8 @@ export class Scanner {
   scanToken(): void {
     const char = this.advance();
     switch (char) {
+      case ' ':
+        break;
       case '(':
         this.addToken(TokenType.LEFT_PAREN);
         break;
@@ -81,7 +82,7 @@ export class Scanner {
         this.addToken(TokenType.LEFT_PAREN);
         break;
       default:
-        error(this.line, 'Unexpected character.');
+        this.reporter.error(this.line, `Unexpected character: ${char}`);
         break;
     }
   }

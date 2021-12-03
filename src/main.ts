@@ -2,8 +2,9 @@ import * as readline from 'readline';
 import { Scanner } from './scanner';
 import { Token } from './token';
 import { readFileSync } from 'fs';
+import { ErrorReporter } from './error';
 
-let hadError = false;
+const reporter = new ErrorReporter();
 
 function main() {
   const args = process.argv.slice(2);
@@ -22,7 +23,7 @@ function runFile(file) {
   const buffer = readFileSync(file);
   const source = buffer.toString();
   run(source);
-  if (hadError) {
+  if (reporter.hadError) {
     process.exit(65);
   }
 }
@@ -36,7 +37,7 @@ function runPrompt() {
   rl.prompt();
   rl.on('line', (line) => {
     run(line);
-    hadError = false;
+    reporter.hadError = false;
     rl.prompt();
   });
   rl.on('SIGINT', () => {
@@ -51,7 +52,7 @@ function runPrompt() {
 }
 
 function run(source: string) {
-  const scanner = new Scanner(source);
+  const scanner = new Scanner(source, reporter);
   const tokens: Token[] = scanner.scanTokens();
   tokens.forEach((token) => {
     console.log(token);
