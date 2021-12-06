@@ -29,8 +29,7 @@ export class Scanner {
   }
 
   advance(): string {
-    this.currentIdx++;
-    return this.source[this.currentIdx - 1];
+    return this.source[this.currentIdx++];
   }
 
   currentLexeme(): string {
@@ -43,11 +42,47 @@ export class Scanner {
     this.tokens.push(new Token(tokenType, lexeme, literal, this.line));
   }
 
+  match(char: string): boolean {
+    if (this.isAtEnd() || this.source[this.currentIdx] !== char) {
+      return false;
+    }
+
+    this.currentIdx++;
+    return true;
+  }
+
+  peek(): string {
+    if (this.isAtEnd()) {
+      return '\0';
+    }
+    return this.source[this.currentIdx];
+  }
+
+  string(): void {
+    while (!this.isAtEnd() && this.peek() !== '"') {
+      if (this.peek() === '\n') {
+        this.line++;
+      }
+      this.advance();
+    }
+
+    if (this.isAtEnd()) {
+      this.reporter.error(this.line, 'Unterminated String.');
+      return;
+    }
+
+    // consume second quotes
+    this.advance();
+
+    this.addToken(
+      TokenType.STRING,
+      this.source.substring(this.startIdx + 1, this.currentIdx),
+    );
+  }
+
   scanToken(): void {
     const char = this.advance();
     switch (char) {
-      case ' ':
-        break;
       case '(':
         this.addToken(TokenType.LEFT_PAREN);
         break;
@@ -58,28 +93,60 @@ export class Scanner {
         this.addToken(TokenType.LEFT_BRACE);
         break;
       case '}':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.RIGHT_BRACE);
         break;
       case ',':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.COMMA);
         break;
       case '.':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.DOT);
         break;
       case '-':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.MINUS);
         break;
       case '+':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.PLUS);
         break;
       case ';':
-        this.addToken(TokenType.LEFT_PAREN);
-        break;
-      case '/':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.SEMICOLON);
         break;
       case '*':
-        this.addToken(TokenType.LEFT_PAREN);
+        this.addToken(TokenType.STAR);
+        break;
+      case '!':
+        this.addToken(this.match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
+        break;
+      case '=':
+        this.addToken(
+          this.match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL,
+        );
+        break;
+      case '<':
+        this.addToken(this.match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+        break;
+      case '>':
+        this.addToken(
+          this.match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER,
+        );
+        break;
+      case '/':
+        if (this.match('/')) {
+          while (!this.isAtEnd() && this.peek() !== '\n') {
+            this.advance();
+          }
+        } else {
+          this.addToken(TokenType.SLASH);
+        }
+        break;
+      case '"':
+        this.string();
+        break;
+      case ' ':
+      case '\r':
+      case '\t':
+        break;
+      case '\n':
+        this.line++;
         break;
       default:
         this.reporter.error(this.line, `Unexpected character: ${char}`);
