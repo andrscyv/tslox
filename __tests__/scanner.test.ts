@@ -137,4 +137,141 @@ describe('Scanner', () => {
     const tokens = scanner.scanTokens();
     expect(tokens).toEqual(expectedTokens);
   });
+  it('Scans for loop', () => {
+    const source = `
+    for ( var a = 1; a++; a > 0) {
+        print 2
+    };`;
+    const expectedTokens = [
+      {
+        type: TokenType.FOR,
+        lexeme: 'for',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.LEFT_PAREN,
+        lexeme: '(',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.VAR,
+        lexeme: 'var',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.IDENTIFIER,
+        lexeme: 'a',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.EQUAL,
+        lexeme: '=',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.NUMBER,
+        lexeme: '1',
+        literal: 1,
+        line: 2,
+      },
+      {
+        type: TokenType.SEMICOLON,
+        lexeme: ';',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.IDENTIFIER,
+        lexeme: 'a',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.PLUS,
+        lexeme: '+',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.PLUS,
+        lexeme: '+',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.SEMICOLON,
+        lexeme: ';',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.IDENTIFIER,
+        lexeme: 'a',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.GREATER,
+        lexeme: '>',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.NUMBER,
+        lexeme: '0',
+        literal: 0,
+        line: 2,
+      },
+      {
+        type: TokenType.RIGHT_PAREN,
+        lexeme: ')',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.LEFT_BRACE,
+        lexeme: '{',
+        literal: null,
+        line: 2,
+      },
+      {
+        type: TokenType.PRINT,
+        lexeme: 'print',
+        literal: null,
+        line: 3,
+      },
+      {
+        type: TokenType.NUMBER,
+        lexeme: '2',
+        literal: 2,
+        line: 3,
+      },
+      {
+        type: TokenType.RIGHT_BRACE,
+        lexeme: '}',
+        literal: null,
+        line: 4,
+      },
+      {
+        type: TokenType.SEMICOLON,
+        lexeme: ';',
+        literal: null,
+        line: 4,
+      },
+      {
+        type: TokenType.EOF,
+        lexeme: '',
+        literal: null,
+        line: 4,
+      },
+    ];
+    const scanner = new Scanner(source, reporter);
+    const tokens = scanner.scanTokens();
+    expect(tokens).toEqual(expectedTokens);
+  });
 });
