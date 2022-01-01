@@ -1,4 +1,4 @@
-import { ErrorReporter } from './error';
+import { ErrorReporter } from '../error';
 import { Token, TokenType } from './token';
 
 export class Scanner {

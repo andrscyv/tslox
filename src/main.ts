@@ -1,6 +1,6 @@
 import * as readline from 'readline';
-import { Scanner } from './scanner';
-import { Token } from './token';
+import { Scanner } from './scanner/scanner';
+import { Token } from './scanner/token';
 import { readFileSync } from 'fs';
 import { ErrorReporter } from './error';
 

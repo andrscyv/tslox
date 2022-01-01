@@ -1,6 +1,6 @@
 import { ErrorReporter } from '../src/error';
-import { Scanner } from '../src/scanner';
-import { TokenType } from '../src/token';
+import { Scanner } from '../src/scanner/scanner';
+import { TokenType } from '../src/scanner/token';
 
 const reporter = new ErrorReporter();
 describe('Scanner', () => {
