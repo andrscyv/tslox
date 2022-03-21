@@ -81,7 +81,7 @@ export class Scanner {
       this.advance();
     }
 
-    if (this.peek() === '.' && this.isDigit(this.peekTwoAhead)) {
+    if (this.peek() === '.' && this.isDigit(this.peekTwoAhead())) {
       this.advance(); // consume dot
 
       // consume fractional part
@@ -142,7 +142,7 @@ export class Scanner {
 
     this.addToken(
       TokenType.STRING,
-      this.source.substring(this.startIdx + 1, this.currentIdx),
+      this.source.substring(this.startIdx + 1, this.currentIdx - 1),
     );
   }
 

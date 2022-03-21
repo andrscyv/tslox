@@ -68,6 +68,58 @@ describe('Scanner', () => {
     const tokens = scanner.scanTokens();
     expect(tokens).toEqual(expectedTokens);
   });
+  it('Scans an string', () => {
+    const source = '"hola";';
+    const expectedTokens = [
+      {
+        type: TokenType.STRING,
+        lexeme: '"hola"',
+        literal: 'hola',
+        line: 1,
+      },
+      {
+        type: TokenType.SEMICOLON,
+        lexeme: ';',
+        literal: null,
+        line: 1,
+      },
+      {
+        type: TokenType.EOF,
+        lexeme: '',
+        literal: null,
+        line: 1,
+      },
+    ];
+    const scanner = new Scanner(source, reporter);
+    const tokens = scanner.scanTokens();
+    expect(tokens).toEqual(expectedTokens);
+  });
+  it('Scans a float', () => {
+    const source = '2.3;';
+    const expectedTokens = [
+      {
+        type: TokenType.NUMBER,
+        lexeme: '2.3',
+        literal: 2.3,
+        line: 1,
+      },
+      {
+        type: TokenType.SEMICOLON,
+        lexeme: ';',
+        literal: null,
+        line: 1,
+      },
+      {
+        type: TokenType.EOF,
+        lexeme: '',
+        literal: null,
+        line: 1,
+      },
+    ];
+    const scanner = new Scanner(source, reporter);
+    const tokens = scanner.scanTokens();
+    expect(tokens).toEqual(expectedTokens);
+  });
   it('Scans a declaration and an expression', () => {
     const source = `var a = 2;
                     3 + 1;`;
