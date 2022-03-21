@@ -1,4 +1,4 @@
-import { Binary, Expr, Literal, Unary } from '../ast/expr';
+import { Binary, Expr, Grouping, Literal, Unary } from '../ast/expr';
 import { ErrorReporter } from '../error';
 import { Token, TokenType } from '../scanner/token';
 import { ParseError } from './error';
@@ -148,7 +148,7 @@ export class Parser {
     if (this.match(LEFT_PAREN)) {
       const expr = this.expression();
       this.consume(RIGHT_PAREN, "Expect ')' after expression.");
-      return expr;
+      return new Grouping(expr);
     }
 
     if (this.match(TRUE)) {

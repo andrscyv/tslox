@@ -7,6 +7,7 @@ export interface Visitor<R> {
   visitBinaryExpr: (expr: Binary) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitUnaryExpr: (expr: Unary) => R;
+  visitGroupingExpr: (expr: Grouping) => R;
 }
 export class Binary implements Expr {
   constructor(public left: Expr, public operator: Token, public right: Expr) {}
@@ -20,6 +21,12 @@ export class Unary implements Expr {
 
   accept<R>(visitor: Visitor<R>) {
     return visitor.visitUnaryExpr(this);
+  }
+}
+export class Grouping implements Expr {
+  constructor(public expr: Expr) {}
+  accept<R>(visitor: Visitor<R>) {
+    return visitor.visitGroupingExpr(this);
   }
 }
 export class Literal implements Expr {

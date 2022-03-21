@@ -1,4 +1,4 @@
-import { Binary, Literal, Unary } from '../../src/ast/expr';
+import { Binary, Grouping, Literal, Unary } from '../../src/ast/expr';
 import { ErrorReporter } from '../../src/error';
 import { Parser } from '../../src/parser/parser';
 import { Scanner } from '../../src/scanner/scanner';
@@ -117,10 +117,12 @@ describe('parser', () => {
       ),
       new Token(TokenType.EQUAL_EQUAL, '==', null, 1),
       new Binary(
-        new Binary(
-          new Literal(5, TokenType.NUMBER),
-          new Token(TokenType.PLUS, '+', null, 1),
-          new Literal(6, TokenType.NUMBER),
+        new Grouping(
+          new Binary(
+            new Literal(5, TokenType.NUMBER),
+            new Token(TokenType.PLUS, '+', null, 1),
+            new Literal(6, TokenType.NUMBER),
+          ),
         ),
         new Token(TokenType.STAR, '*', null, 1),
         new Literal(7, TokenType.NUMBER),
