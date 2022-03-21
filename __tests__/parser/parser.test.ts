@@ -12,6 +12,11 @@ function parse(source: string) {
   return parser.parse();
 }
 describe('parser', () => {
+  it('reports error', () => {
+    const source = '1 + ;';
+    parse(source);
+    expect(true).toBe(true);
+  });
   it('parses a term', () => {
     const source = '1 + 2;';
     const expectedAst = new Binary(
