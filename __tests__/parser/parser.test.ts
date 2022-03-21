@@ -66,9 +66,33 @@ describe('parser', () => {
     const parsedAst = parse(source);
     expect(parsedAst).toEqual(expectedAst);
   });
-  it('parses a primary', () => {
+  it('parses a boolean true', () => {
     const source = 'true;';
-    const expectedAst = new Literal(null, TokenType.TRUE);
+    const expectedAst = new Literal(true, TokenType.TRUE);
+    const parsedAst = parse(source);
+    expect(parsedAst).toEqual(expectedAst);
+  });
+  it('parses a boolean false', () => {
+    const source = 'false;';
+    const expectedAst = new Literal(false, TokenType.FALSE);
+    const parsedAst = parse(source);
+    expect(parsedAst).toEqual(expectedAst);
+  });
+  it('parses a nil', () => {
+    const source = 'nil;';
+    const expectedAst = new Literal(null, TokenType.NIL);
+    const parsedAst = parse(source);
+    expect(parsedAst).toEqual(expectedAst);
+  });
+  it('parses a number', () => {
+    const source = '2.3;';
+    const expectedAst = new Literal(2.3, TokenType.NUMBER);
+    const parsedAst = parse(source);
+    expect(parsedAst).toEqual(expectedAst);
+  });
+  it('parses a string', () => {
+    const source = '"hola";';
+    const expectedAst = new Literal('hola', TokenType.STRING);
     const parsedAst = parse(source);
     expect(parsedAst).toEqual(expectedAst);
   });

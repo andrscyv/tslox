@@ -151,7 +151,17 @@ export class Parser {
       return expr;
     }
 
-    const literalTokenTypes = [NUMBER, STRING, TRUE, FALSE, NIL];
+    if (this.match(TRUE)) {
+      return new Literal(true, TRUE);
+    }
+    if (this.match(FALSE)) {
+      return new Literal(false, FALSE);
+    }
+    if (this.match(NIL)) {
+      return new Literal(null, NIL);
+    }
+
+    const literalTokenTypes = [NUMBER, STRING];
     if (literalTokenTypes.includes(this.peek().type)) {
       const token = this.advance();
       return new Literal(token.literal, token.type);
