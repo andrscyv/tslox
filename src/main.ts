@@ -3,6 +3,7 @@ import { Scanner } from './scanner/scanner';
 import { Token } from './scanner/token';
 import { readFileSync } from 'fs';
 import { ErrorReporter } from './error';
+import { Parser } from './parser/parser';
 
 const reporter = new ErrorReporter();
 
@@ -54,9 +55,12 @@ function runPrompt() {
 function run(source: string) {
   const scanner = new Scanner(source, reporter);
   const tokens: Token[] = scanner.scanTokens();
-  tokens.forEach((token) => {
-    console.log(token);
-  });
+  const parser = new Parser(tokens, reporter);
+  const expr = parser.parse();
+  if (reporter.hadError) {
+    return;
+  }
+  console.log(expr);
 }
 
 main();
