@@ -1,9 +1,16 @@
 import { Token, TokenType } from '../scanner/token';
-import { Binary, Expr, Grouping, Literal, Unary, Visitor } from '../ast/expr';
+import {
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Unary,
+  ExprVisitor,
+} from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
 
-export class Interpreter implements Visitor<unknown> {
+export class Interpreter implements ExprVisitor<unknown> {
   constructor(private reporter: ErrorReporter) {}
   private evaluate(expr: Expr) {
     return expr.accept(this);
