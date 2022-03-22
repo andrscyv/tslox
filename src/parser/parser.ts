@@ -1,4 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary } from '../ast/expr';
+import { ExprStmt, PrintStmt, Stmt } from '../ast/stmt';
 import { ErrorReporter } from '../error';
 import { Token, TokenType } from '../scanner/token';
 import { ParseError } from './error';
@@ -22,6 +23,8 @@ const {
   SLASH,
   STAR,
   PLUS,
+  PRINT,
+  SEMICOLON,
 } = TokenType;
 
 export class Parser {
@@ -30,8 +33,12 @@ export class Parser {
   constructor(private tokens: Token[], private reporter: ErrorReporter) {}
 
   public parse() {
+    const program: Stmt[] = [];
     try {
-      return this.expression();
+      while (!this.isAtEnd()) {
+        program.push(this.statement());
+      }
+      return program;
     } catch (error) {
       console.info(error);
       return null;
@@ -89,6 +96,24 @@ export class Parser {
     }
 
     throw this.error(this.peek(), errorMessage);
+  }
+
+  private statement(): Stmt {
+    if (this.match(PRINT)) {
+      return this.printStatement();
+    }
+    return this.expressionStatement();
+  }
+
+  private expressionStatement(): Stmt {
+    const expr = this.expression();
+    this.consume(SEMICOLON, 'Expect ; after expression.');
+    return new ExprStmt(expr);
+  }
+  private printStatement(): Stmt {
+    const expr = this.expression();
+    this.consume(SEMICOLON, 'Expect ; after value.');
+    return new PrintStmt(expr);
   }
 
   private expression(): Expr {

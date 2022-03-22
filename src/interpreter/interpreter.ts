@@ -9,11 +9,16 @@ import {
 } from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
+import { ExprStmt, PrintStmt, Stmt, StmtVisitor } from '../ast/stmt';
+import { setLastVal } from './utils';
 
-export class Interpreter implements ExprVisitor<unknown> {
+export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   constructor(private reporter: ErrorReporter) {}
   private evaluate(expr: Expr) {
     return expr.accept(this);
+  }
+  private execute(stmt: Stmt) {
+    return stmt.accept(this);
   }
   private isTruthy(value) {
     return value !== null && value !== false;
@@ -36,6 +41,15 @@ export class Interpreter implements ExprVisitor<unknown> {
       return 'nil';
     }
     return value.toString();
+  }
+  visitExprStmt(exprStmt: ExprStmt) {
+    const val = this.evaluate(exprStmt.expr);
+    setLastVal(val);
+  }
+
+  visitPrintStmt(printStmt: PrintStmt) {
+    const value = this.evaluate(printStmt.expr);
+    console.log(this.stringify(value));
   }
   visitBinaryExpr(expr: Binary) {
     const left = this.evaluate(expr.left);
@@ -101,12 +115,11 @@ export class Interpreter implements ExprVisitor<unknown> {
   visitGroupingExpr(expr: Grouping) {
     return this.evaluate(expr.expr);
   }
-  interpret(ast: Expr): string {
+  interpret(ast: Stmt[]): void {
     try {
-      const val = this.evaluate(ast);
-      const loxString = this.stringify(val);
-      console.log(loxString);
-      return loxString;
+      for (const stmt of ast) {
+        this.execute(stmt);
+      }
     } catch (error) {
       if (error.token) {
         // its runtime error
@@ -114,7 +127,6 @@ export class Interpreter implements ExprVisitor<unknown> {
       } else {
         console.error(error);
       }
-      return '';
     }
   }
 }
