@@ -1,7 +1,9 @@
+import { RuntimeError } from './interpreter/runtime-error';
 import { Token, TokenType } from './scanner/token';
 
 export class ErrorReporter {
   public hadError = false;
+  public hadRuntimeError = false;
   error(line: number, message: string): void {
     this.report(line, '', message);
   }
@@ -15,5 +17,10 @@ export class ErrorReporter {
     } else {
       this.report(token.line, ` at '${token.lexeme}'`, message);
     }
+  }
+  runtimeError(error: RuntimeError): void {
+    const { token, message } = error;
+    console.error(`${message} \n[line ${token.line}]`);
+    this.hadRuntimeError = true;
   }
 }

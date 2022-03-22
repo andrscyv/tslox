@@ -4,8 +4,10 @@ import { Token } from './scanner/token';
 import { readFileSync } from 'fs';
 import { ErrorReporter } from './error';
 import { Parser } from './parser/parser';
+import { Interpreter } from './interpreter/interpreter';
 
 const reporter = new ErrorReporter();
+const interpreter = new Interpreter(reporter);
 
 function main() {
   const args = process.argv.slice(2);
@@ -26,6 +28,8 @@ function runFile(file) {
   run(source);
   if (reporter.hadError) {
     process.exit(65);
+  } else if (reporter.hadRuntimeError) {
+    process.exit(70);
   }
 }
 function runPrompt() {
@@ -56,11 +60,11 @@ function run(source: string) {
   const scanner = new Scanner(source, reporter);
   const tokens: Token[] = scanner.scanTokens();
   const parser = new Parser(tokens, reporter);
-  const expr = parser.parse();
+  const ast = parser.parse();
   if (reporter.hadError) {
     return;
   }
-  console.log(expr);
+  interpreter.interpret(ast);
 }
 
 main();
