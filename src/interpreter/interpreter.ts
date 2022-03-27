@@ -6,13 +6,24 @@ import {
   Literal,
   Unary,
   ExprVisitor,
+  Variable,
+  Assignemt,
 } from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
-import { ExprStmt, PrintStmt, Stmt, StmtVisitor } from '../ast/stmt';
-import { setLastVal } from './utils';
+import {
+  BlockStmt,
+  ExprStmt,
+  PrintStmt,
+  Stmt,
+  StmtVisitor,
+  VarDeclStmt,
+} from '../ast/stmt';
+import { Environment } from './environment';
 
 export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
+  public lastValue = null;
+  private environment = new Environment();
   constructor(private reporter: ErrorReporter) {}
   private evaluate(expr: Expr) {
     return expr.accept(this);
@@ -20,6 +31,21 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   private execute(stmt: Stmt) {
     return stmt.accept(this);
   }
+
+  private executeBlock(stmtList: Stmt[], executionEnv: Environment) {
+    console.assert(executionEnv, 'Missing executionEnv');
+    const enclosing = this.environment;
+    try {
+      this.environment = executionEnv;
+
+      for (const stmt of stmtList) {
+        this.execute(stmt);
+      }
+    } finally {
+      this.environment = enclosing;
+    }
+  }
+
   private isTruthy(value) {
     return value !== null && value !== false;
   }
@@ -42,13 +68,39 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     }
     return value.toString();
   }
+
+  visitVarDeclStmt(varDeclStmt: VarDeclStmt) {
+    const { identifier, initializer } = varDeclStmt;
+    let initialValue = null;
+    if (initializer) {
+      initialValue = this.evaluate(initializer);
+    }
+    this.environment.define(identifier.lexeme, initialValue);
+  }
+  visitVarExpr(expr: Variable) {
+    return this.environment.get(expr.name);
+  }
+
+  visitAssignmentExpr(expr: Assignemt) {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
+  }
   visitExprStmt(exprStmt: ExprStmt) {
     const val = this.evaluate(exprStmt.expr);
-    setLastVal(val);
+    this.lastValue = val;
+  }
+
+  visitBlockStmt(blockStmt: BlockStmt) {
+    if (!blockStmt.stmtList) {
+      return;
+    }
+    this.executeBlock(blockStmt.stmtList, new Environment(this.environment));
   }
 
   visitPrintStmt(printStmt: PrintStmt) {
     const value = this.evaluate(printStmt.expr);
+    this.lastValue = value;
     console.log(this.stringify(value));
   }
   visitBinaryExpr(expr: Binary) {

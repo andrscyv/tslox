@@ -8,6 +8,8 @@ export interface ExprVisitor<R> {
   visitLiteralExpr: (expr: Literal) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitGroupingExpr: (expr: Grouping) => R;
+  visitVarExpr: (expr: Variable) => R;
+  visitAssignmentExpr: (expr: Assignemt) => R;
 }
 export class Binary implements Expr {
   constructor(public left: Expr, public operator: Token, public right: Expr) {}
@@ -33,5 +35,19 @@ export class Literal implements Expr {
   constructor(public value, public type: TokenType) {}
   accept<R>(visitor: ExprVisitor<R>) {
     return visitor.visitLiteralExpr(this);
+  }
+}
+
+export class Variable implements Expr {
+  constructor(public name: Token) {}
+  accept<R>(visitor: ExprVisitor<R>) {
+    return visitor.visitVarExpr(this);
+  }
+}
+
+export class Assignemt implements Expr {
+  constructor(public name: Token, public value: Expr) {}
+  accept<R>(visitor: ExprVisitor<R>) {
+    return visitor.visitVarExpr(this);
   }
 }

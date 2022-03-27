@@ -1,6 +1,5 @@
 import { ErrorReporter } from '../../src/error';
 import { Interpreter } from '../../src/interpreter/interpreter';
-import { getLastVal } from '../../src/interpreter/utils';
 import { Parser } from '../../src/parser/parser';
 import { Scanner } from '../../src/scanner/scanner';
 
@@ -11,25 +10,28 @@ function interpret(source: string) {
   const parser = new Parser(tokens, reporter);
   const ast = parser.parse();
   const interpreter = new Interpreter(reporter);
-  return interpreter.interpret(ast);
+  interpreter.interpret(ast);
+  return interpreter.lastValue;
 }
 describe('interpreter', () => {
   it('sums 1 + 2', () => {
     const source = '1+2;';
-    interpret(source);
-    const res = getLastVal();
+    const res = interpret(source);
     expect(res).toBe(3);
   });
   it('sums -1 + 2', () => {
     const source = '-1+2;';
-    interpret(source);
-    const res = getLastVal();
+    const res = interpret(source);
     expect(res).toBe(1);
   });
   it('respect precedent', () => {
     const source = '-1+2*3 - 10/2;';
-    interpret(source);
-    const res = getLastVal();
+    const res = interpret(source);
     expect(res).toBe(0);
+  });
+  it('lexical scope', () => {
+    const source = 'var a = 1; { var a = 2; print a; }';
+    const res = interpret(source);
+    expect(res).toBe(2);
   });
 });

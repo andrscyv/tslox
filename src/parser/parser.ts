@@ -1,5 +1,13 @@
-import { Binary, Expr, Grouping, Literal, Unary } from '../ast/expr';
-import { ExprStmt, PrintStmt, Stmt } from '../ast/stmt';
+import {
+  Assignemt,
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Unary,
+  Variable,
+} from '../ast/expr';
+import { BlockStmt, ExprStmt, PrintStmt, Stmt, VarDeclStmt } from '../ast/stmt';
 import { ErrorReporter } from '../error';
 import { Token, TokenType } from '../scanner/token';
 import { ParseError } from './error';
@@ -25,6 +33,17 @@ const {
   PLUS,
   PRINT,
   SEMICOLON,
+  VAR,
+  IDENTIFIER,
+  EQUAL,
+  CLASS,
+  FUN,
+  FOR,
+  IF,
+  WHILE,
+  RETURN,
+  RIGHT_BRACE,
+  LEFT_BRACE,
 } = TokenType;
 
 export class Parser {
@@ -36,7 +55,7 @@ export class Parser {
     const program: Stmt[] = [];
     try {
       while (!this.isAtEnd()) {
-        program.push(this.statement());
+        program.push(this.declaration());
       }
       return program;
     } catch (error) {
@@ -98,11 +117,73 @@ export class Parser {
     throw this.error(this.peek(), errorMessage);
   }
 
+  private sinchronize() {
+    this.advance();
+    while (!this.isAtEnd()) {
+      if (this.previous().type === SEMICOLON) {
+        return;
+      }
+      switch (this.peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+          return;
+      }
+      this.advance();
+    }
+  }
+
+  private declaration(): Stmt {
+    try {
+      if (this.match(VAR)) {
+        return this.variableDeclaration();
+      }
+
+      return this.statement();
+    } catch (error) {
+      this.sinchronize();
+      return null;
+    }
+  }
+
+  private variableDeclaration(): Stmt {
+    const identifier: Token = this.consume(IDENTIFIER, 'Expect variable name.');
+    let initializer = null;
+
+    if (this.match(EQUAL)) {
+      initializer = this.expression();
+    }
+
+    this.consume(SEMICOLON, "Expect ';' after variable declaration.");
+    return new VarDeclStmt(identifier, initializer);
+  }
   private statement(): Stmt {
     if (this.match(PRINT)) {
       return this.printStatement();
     }
+
+    if (this.match(LEFT_BRACE)) {
+      return new BlockStmt(this.block());
+    }
+
     return this.expressionStatement();
+  }
+
+  private block(): Stmt[] {
+    const stmtList: Stmt[] = [];
+
+    while (!this.isAtEnd() && !this.check(RIGHT_BRACE)) {
+      stmtList.push(this.declaration());
+    }
+
+    this.consume(RIGHT_BRACE, "Expect '}' after block.");
+
+    return stmtList;
   }
 
   private expressionStatement(): Stmt {
@@ -117,7 +198,7 @@ export class Parser {
   }
 
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
   }
 
   private parseLeftAssocBinaryExpr(
@@ -132,6 +213,22 @@ export class Parser {
       expr = new Binary(expr, operator, right);
     }
 
+    return expr;
+  }
+
+  private assignment(): Expr {
+    const expr = this.equality();
+
+    if (this.match(EQUAL)) {
+      const equalToken = this.previous();
+      // its assignment
+      if (expr instanceof Variable) {
+        const value = this.assignment();
+        return new Assignemt(expr.name, value);
+      }
+
+      this.error(equalToken, 'Invalid assignment target.');
+    }
     return expr;
   }
 
@@ -184,6 +281,9 @@ export class Parser {
     }
     if (this.match(NIL)) {
       return new Literal(null, NIL);
+    }
+    if (this.match(IDENTIFIER)) {
+      return new Variable(this.previous());
     }
 
     const literalTokenTypes = [NUMBER, STRING];
