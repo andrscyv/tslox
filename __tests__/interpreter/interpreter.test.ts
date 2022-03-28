@@ -34,4 +34,14 @@ describe('interpreter', () => {
     const res = interpret(source);
     expect(res).toBe(2);
   });
+
+  it('reassigns variable', () => {
+    const source = ` 
+      var a = 1;
+      a = 2;
+      a;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(2);
+  });
 });

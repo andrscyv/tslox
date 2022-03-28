@@ -9,7 +9,7 @@ export interface ExprVisitor<R> {
   visitUnaryExpr: (expr: Unary) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitVarExpr: (expr: Variable) => R;
-  visitAssignmentExpr: (expr: Assignemt) => R;
+  visitAssignmentExpr: (expr: Assignment) => R;
 }
 export class Binary implements Expr {
   constructor(public left: Expr, public operator: Token, public right: Expr) {}
@@ -45,9 +45,9 @@ export class Variable implements Expr {
   }
 }
 
-export class Assignemt implements Expr {
+export class Assignment implements Expr {
   constructor(public name: Token, public value: Expr) {}
   accept<R>(visitor: ExprVisitor<R>) {
-    return visitor.visitVarExpr(this);
+    return visitor.visitAssignmentExpr(this);
   }
 }

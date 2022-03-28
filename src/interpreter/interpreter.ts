@@ -7,7 +7,7 @@ import {
   Unary,
   ExprVisitor,
   Variable,
-  Assignemt,
+  Assignment,
 } from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
@@ -21,12 +21,21 @@ import {
 } from '../ast/stmt';
 import { Environment } from './environment';
 
+export interface InterpreterOpts {
+  printLastValue: boolean;
+}
 export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   public lastValue = null;
+  private printLastValue = false;
   private environment = new Environment();
   constructor(private reporter: ErrorReporter) {}
   private evaluate(expr: Expr) {
     return expr.accept(this);
+  }
+  private printExpressionValue(value) {
+    if (this.printLastValue) {
+      console.log(value);
+    }
   }
   private execute(stmt: Stmt) {
     return stmt.accept(this);
@@ -81,14 +90,16 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     return this.environment.get(expr.name);
   }
 
-  visitAssignmentExpr(expr: Assignemt) {
+  visitAssignmentExpr(expr: Assignment) {
     const value = this.evaluate(expr.value);
+    this.printExpressionValue(value);
     this.environment.assign(expr.name, value);
     return value;
   }
   visitExprStmt(exprStmt: ExprStmt) {
-    const val = this.evaluate(exprStmt.expr);
-    this.lastValue = val;
+    const value = this.evaluate(exprStmt.expr);
+    this.printExpressionValue(value);
+    this.lastValue = value;
   }
 
   visitBlockStmt(blockStmt: BlockStmt) {
@@ -167,7 +178,11 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   visitGroupingExpr(expr: Grouping) {
     return this.evaluate(expr.expr);
   }
-  interpret(ast: Stmt[]): void {
+  interpret(
+    ast: Stmt[],
+    opts: InterpreterOpts = { printLastValue: false },
+  ): void {
+    this.printLastValue = opts.printLastValue;
     try {
       for (const stmt of ast) {
         this.execute(stmt);

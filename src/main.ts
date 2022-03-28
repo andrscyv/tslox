@@ -41,7 +41,7 @@ function runPrompt() {
   rl.setPrompt('> ');
   rl.prompt();
   rl.on('line', (line) => {
-    run(line);
+    run(line, { printLastValue: true });
     reporter.hadError = false;
     rl.prompt();
   });
@@ -56,7 +56,10 @@ function runPrompt() {
   });
 }
 
-function run(source: string) {
+function run(
+  source: string,
+  opts: { printLastValue: boolean } = { printLastValue: false },
+) {
   const scanner = new Scanner(source, reporter);
   const tokens: Token[] = scanner.scanTokens();
   const parser = new Parser(tokens, reporter);
@@ -64,7 +67,7 @@ function run(source: string) {
   if (reporter.hadError) {
     return;
   }
-  interpreter.interpret(ast);
+  interpreter.interpret(ast, opts);
 }
 
 main();

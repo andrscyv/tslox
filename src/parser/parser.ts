@@ -1,5 +1,5 @@
 import {
-  Assignemt,
+  Assignment,
   Binary,
   Expr,
   Grouping,
@@ -224,7 +224,7 @@ export class Parser {
       // its assignment
       if (expr instanceof Variable) {
         const value = this.assignment();
-        return new Assignemt(expr.name, value);
+        return new Assignment(expr.name, value);
       }
 
       this.error(equalToken, 'Invalid assignment target.');

@@ -25,9 +25,9 @@ export class Environment {
     if (Object.prototype.hasOwnProperty.call(this.valueMap, varName)) {
       this.valueMap[varName] = value;
     } else if (this.enclosing) {
-      return this.enclosing.assign(token, value);
+      this.enclosing.assign(token, value);
+    } else {
+      throw new RuntimeError(token, `Undefined variable ${token.lexeme}.`);
     }
-
-    throw new RuntimeError(token, `Undefined variable ${token.lexeme}.`);
   }
 }
