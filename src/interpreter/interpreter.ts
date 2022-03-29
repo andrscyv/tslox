@@ -8,12 +8,14 @@ import {
   ExprVisitor,
   Variable,
   Assignment,
+  Logical,
 } from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
 import {
   BlockStmt,
   ExprStmt,
+  IfStmt,
   PrintStmt,
   Stmt,
   StmtVisitor,
@@ -100,6 +102,30 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     const value = this.evaluate(exprStmt.expr);
     this.printExpressionValue(value);
     this.lastValue = value;
+  }
+
+  visitIfStmt(ifStmt: IfStmt) {
+    const { condition, thenBranch, elseBranch } = ifStmt;
+    const value = this.evaluate(condition);
+
+    if (this.isTruthy(value)) {
+      this.execute(thenBranch);
+    } else if (elseBranch) {
+      this.execute(elseBranch);
+    }
+  }
+
+  visitLogicalExpr(expr: Logical) {
+    const leftValue = this.evaluate(expr.left);
+    const leftValuIsTruthy = this.isTruthy(leftValue);
+
+    if (expr.operator.type === TokenType.OR && leftValuIsTruthy) {
+      return leftValue;
+    } else if (expr.operator.type === TokenType.AND && !leftValuIsTruthy) {
+      return leftValue;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitBlockStmt(blockStmt: BlockStmt) {

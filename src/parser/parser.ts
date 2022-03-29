@@ -4,10 +4,18 @@ import {
   Expr,
   Grouping,
   Literal,
+  Logical,
   Unary,
   Variable,
 } from '../ast/expr';
-import { BlockStmt, ExprStmt, PrintStmt, Stmt, VarDeclStmt } from '../ast/stmt';
+import {
+  BlockStmt,
+  ExprStmt,
+  IfStmt,
+  PrintStmt,
+  Stmt,
+  VarDeclStmt,
+} from '../ast/stmt';
 import { ErrorReporter } from '../error';
 import { Token, TokenType } from '../scanner/token';
 import { ParseError } from './error';
@@ -44,6 +52,9 @@ const {
   RETURN,
   RIGHT_BRACE,
   LEFT_BRACE,
+  ELSE,
+  OR,
+  AND,
 } = TokenType;
 
 export class Parser {
@@ -171,6 +182,10 @@ export class Parser {
       return new BlockStmt(this.block());
     }
 
+    if (this.match(IF)) {
+      return this.ifStatement();
+    }
+
     return this.expressionStatement();
   }
 
@@ -184,6 +199,21 @@ export class Parser {
     this.consume(RIGHT_BRACE, "Expect '}' after block.");
 
     return stmtList;
+  }
+
+  private ifStatement(): IfStmt {
+    this.consume(LEFT_PAREN, "Expect '(' after 'if'.");
+    const condition = this.expression();
+
+    this.consume(RIGHT_PAREN, "Expect ')' after if condition.");
+    const thenBranch = this.statement();
+
+    let elseBranch = null;
+    if (this.match(ELSE)) {
+      elseBranch = this.statement();
+    }
+
+    return new IfStmt(condition, thenBranch, elseBranch);
   }
 
   private expressionStatement(): Stmt {
@@ -217,7 +247,7 @@ export class Parser {
   }
 
   private assignment(): Expr {
-    const expr = this.equality();
+    const expr = this.logicOr();
 
     if (this.match(EQUAL)) {
       const equalToken = this.previous();
@@ -229,6 +259,30 @@ export class Parser {
 
       this.error(equalToken, 'Invalid assignment target.');
     }
+    return expr;
+  }
+
+  private logicOr(): Expr {
+    const expr = this.logicAnd();
+
+    if (this.match(OR)) {
+      const operator = this.previous();
+      const right = this.logicAnd();
+      return new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private logicAnd(): Expr {
+    const expr = this.equality();
+
+    if (this.match(AND)) {
+      const operator = this.previous();
+      const right = this.equality();
+      return new Logical(expr, operator, right);
+    }
+
     return expr;
   }
 

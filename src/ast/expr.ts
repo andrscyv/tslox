@@ -10,6 +10,7 @@ export interface ExprVisitor<R> {
   visitGroupingExpr: (expr: Grouping) => R;
   visitVarExpr: (expr: Variable) => R;
   visitAssignmentExpr: (expr: Assignment) => R;
+  visitLogicalExpr: (expr: Logical) => R;
 }
 export class Binary implements Expr {
   constructor(public left: Expr, public operator: Token, public right: Expr) {}
@@ -31,10 +32,18 @@ export class Grouping implements Expr {
     return visitor.visitGroupingExpr(this);
   }
 }
+
 export class Literal implements Expr {
   constructor(public value, public type: TokenType) {}
   accept<R>(visitor: ExprVisitor<R>) {
     return visitor.visitLiteralExpr(this);
+  }
+}
+
+export class Logical implements Expr {
+  constructor(public left: Expr, public operator: Token, public right: Expr) {}
+  accept<R>(visitor: ExprVisitor<R>) {
+    return visitor.visitLogicalExpr(this);
   }
 }
 

@@ -44,4 +44,68 @@ describe('interpreter', () => {
     const res = interpret(source);
     expect(res).toBe(2);
   });
+
+  it('short circuits AND', () => {
+    const source = ` 
+      nil and 1;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(null);
+  });
+
+  it('short circuits OR', () => {
+    const source = ` 
+      "hello" or nil;
+      `;
+    const res = interpret(source);
+    expect(res).toBe('hello');
+  });
+
+  it('evaluates false if statement', () => {
+    const source = ` 
+      var a = false;
+      if (a) 1;
+      else
+      2;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(2);
+  });
+
+  it('evaluates true if statement', () => {
+    const source = ` 
+      var a = true;
+      if (a) 1;
+      else
+      2;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(1);
+  });
+
+  it('evaluates if with block statement', () => {
+    const source = ` 
+      var a = 0;
+      if (false or true) {
+        a = 3;
+      }
+      else a = 4;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(3);
+  });
+
+  it('evaluates false if with block statement', () => {
+    const source = ` 
+      var a = 0;
+      if (nil and "hello") {
+        a = "true case";
+      }
+      else {
+        a = "false case";
+      }
+      `;
+    const res = interpret(source);
+    expect(res).toBe('false case');
+  });
 });

@@ -10,6 +10,7 @@ export interface StmtVisitor<R> {
   visitPrintStmt: (printStmt: PrintStmt) => R;
   visitVarDeclStmt: (varDeclStmt: VarDeclStmt) => R;
   visitBlockStmt: (blockStmt: BlockStmt) => R;
+  visitIfStmt: (ifStmt: IfStmt) => R;
 }
 
 export class ExprStmt implements Stmt {
@@ -37,5 +38,16 @@ export class BlockStmt implements Stmt {
   constructor(public stmtList: Stmt[]) {}
   accept<R>(visitor: StmtVisitor<R>) {
     return visitor.visitBlockStmt(this);
+  }
+}
+
+export class IfStmt implements Stmt {
+  constructor(
+    public condition: Expr,
+    public thenBranch: Stmt,
+    public elseBranch: Stmt = null,
+  ) {}
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitIfStmt(this);
   }
 }
