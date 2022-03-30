@@ -29,16 +29,11 @@ export interface InterpreterOpts {
 }
 export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   public lastValue = null;
-  private printLastValue = false;
+  public printLastValue = false;
   private environment = new Environment();
   constructor(private reporter: ErrorReporter) {}
   private evaluate(expr: Expr) {
     return expr.accept(this);
-  }
-  private printExpressionValue(value) {
-    if (this.printLastValue) {
-      console.log(value);
-    }
   }
   private execute(stmt: Stmt) {
     return stmt.accept(this);
@@ -95,13 +90,11 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
 
   visitAssignmentExpr(expr: Assignment) {
     const value = this.evaluate(expr.value);
-    this.printExpressionValue(value);
     this.environment.assign(expr.name, value);
     return value;
   }
   visitExprStmt(exprStmt: ExprStmt) {
     const value = this.evaluate(exprStmt.expr);
-    this.printExpressionValue(value);
     this.lastValue = value;
   }
 
