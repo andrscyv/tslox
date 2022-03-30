@@ -191,6 +191,10 @@ export class Parser {
       return this.whileStatement();
     }
 
+    if (this.match(FOR)) {
+      return this.forStatement();
+    }
+
     return this.expressionStatement();
   }
 
@@ -229,6 +233,45 @@ export class Parser {
     const body = this.statement();
 
     return new WhileStmt(condition, body);
+  }
+
+  private forStatement(): Stmt {
+    this.consume(LEFT_PAREN, "Expect '(' after 'for'.");
+    let initializer: Stmt;
+    let condition: Expr;
+    let increment: Expr;
+
+    if (this.match(SEMICOLON)) {
+      initializer = null;
+    } else if (this.match(VAR)) {
+      initializer = this.variableDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    if (!this.check(SEMICOLON)) {
+      condition = this.expression();
+    }
+    this.consume(SEMICOLON, "Expect ';' after loop condition.");
+
+    if (!this.check(RIGHT_PAREN)) {
+      increment = this.expression();
+    }
+    this.consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+    let body = this.statement();
+
+    if (increment) {
+      const incrementStmt = new ExprStmt(increment);
+      body = new BlockStmt([body, incrementStmt]);
+    }
+
+    condition = condition || new Literal(true, TRUE);
+
+    if (initializer) {
+      body = new BlockStmt([initializer, new WhileStmt(condition, body)]);
+    }
+
+    return body;
   }
 
   private expressionStatement(): Stmt {

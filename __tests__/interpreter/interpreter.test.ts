@@ -120,4 +120,14 @@ describe('interpreter', () => {
     const res = interpret(source);
     expect(res).toBe(4);
   });
+
+  it('interprets for loop', () => {
+    const source = ` 
+      for (var i = 0; i < 4 ; i = i +1 ) {
+        print i;
+      }
+      `;
+    const res = interpret(source);
+    expect(res).toBe(4);
+  });
 });
