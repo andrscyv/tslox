@@ -15,6 +15,7 @@ import {
   PrintStmt,
   Stmt,
   VarDeclStmt,
+  WhileStmt,
 } from '../ast/stmt';
 import { ErrorReporter } from '../error';
 import { Token, TokenType } from '../scanner/token';
@@ -186,6 +187,10 @@ export class Parser {
       return this.ifStatement();
     }
 
+    if (this.match(WHILE)) {
+      return this.whileStatement();
+    }
+
     return this.expressionStatement();
   }
 
@@ -214,6 +219,16 @@ export class Parser {
     }
 
     return new IfStmt(condition, thenBranch, elseBranch);
+  }
+
+  private whileStatement(): WhileStmt {
+    this.consume(LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition = this.expression();
+    this.consume(RIGHT_PAREN, "Expect ')' after condition.");
+
+    const body = this.statement();
+
+    return new WhileStmt(condition, body);
   }
 
   private expressionStatement(): Stmt {

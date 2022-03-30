@@ -20,6 +20,7 @@ import {
   Stmt,
   StmtVisitor,
   VarDeclStmt,
+  WhileStmt,
 } from '../ast/stmt';
 import { Environment } from './environment';
 
@@ -113,6 +114,13 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     } else if (elseBranch) {
       this.execute(elseBranch);
     }
+  }
+
+  visitWhileStmt(whileStmt: WhileStmt) {
+    while (this.isTruthy(this.evaluate(whileStmt.condition))) {
+      this.execute(whileStmt.body);
+    }
+    return null;
   }
 
   visitLogicalExpr(expr: Logical) {

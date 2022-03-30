@@ -108,4 +108,16 @@ describe('interpreter', () => {
     const res = interpret(source);
     expect(res).toBe('false case');
   });
+
+  it('interprets while statement', () => {
+    const source = ` 
+      var i = 0;
+      while (i < 4) {
+        print i/2;
+        i = i + 1;
+      }
+      `;
+    const res = interpret(source);
+    expect(res).toBe(4);
+  });
 });
