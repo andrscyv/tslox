@@ -11,6 +11,7 @@ export interface ExprVisitor<R> {
   visitVarExpr: (expr: Variable) => R;
   visitAssignmentExpr: (expr: Assignment) => R;
   visitLogicalExpr: (expr: Logical) => R;
+  visitCallExpr: (expr: Call) => R;
 }
 export class Binary implements Expr {
   constructor(public left: Expr, public operator: Token, public right: Expr) {}
@@ -58,5 +59,12 @@ export class Assignment implements Expr {
   constructor(public name: Token, public value: Expr) {}
   accept<R>(visitor: ExprVisitor<R>) {
     return visitor.visitAssignmentExpr(this);
+  }
+}
+
+export class Call implements Expr {
+  constructor(public callee: Expr, public paren: Token, public args: Expr[]) {}
+  accept<R>(visitor: ExprVisitor<R>) {
+    return visitor.visitCallExpr(this);
   }
 }

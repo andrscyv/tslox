@@ -130,4 +130,81 @@ describe('interpreter', () => {
     const res = interpret(source);
     expect(res).toBe(4);
   });
+
+  it('calls builtin function clock', () => {
+    const source = ` 
+      clock();
+      `;
+    const res = interpret(source);
+    expect(typeof res).toBe('number');
+  });
+
+  it('calls user defined fun', () => {
+    const source = ` 
+      fun hello() {
+        print "Hello world.";
+      }
+      hello();
+      `;
+    const res = interpret(source);
+    expect(res).toBe(null);
+  });
+
+  it('calls user defined fun with return stmt', () => {
+    const source = ` 
+      fun hello() {
+        print "Hello world.";
+        return 1;
+      }
+      print hello();
+      hello();
+      `;
+    const res = interpret(source);
+    expect(res).toBe(1);
+  });
+
+  it('calls user defined fun with early return', () => {
+    const source = ` 
+      fun hello() {
+        return "a";
+        print "Hello world.";
+        return 1;
+      }
+      print hello();
+      hello();
+      `;
+    const res = interpret(source);
+    expect(res).toBe('a');
+  });
+
+  it('runs fib function', () => {
+    const source = ` 
+      fun fib(n) {
+        if (n <= 1) return n;
+        return fib(n - 2) + fib(n - 1);
+      }
+      var ithFib;
+      for (var i = 0; i < 20; i = i + 1) {
+        ithFib = fib(i);
+        print ithFib;
+      }
+      ithFib;
+      `;
+    const res = interpret(source);
+    expect(res).toBe(4181);
+  });
+  it('runs function with closure', () => {
+    const source = ` 
+      fun makeCounter() {
+        var i = 0;
+        fun count() { i = i + 1; return i;}
+        return count;
+      }
+      var counter = makeCounter();
+      print counter(); // 1
+      counter(); // 2
+      `;
+    const res = interpret(source);
+    expect(res).toBe(2);
+  });
 });

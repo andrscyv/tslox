@@ -9,29 +9,41 @@ import {
   Variable,
   Assignment,
   Logical,
+  Call,
 } from '../ast/expr';
 import { RuntimeError } from './runtime-error';
 import { ErrorReporter } from '../error';
 import {
   BlockStmt,
   ExprStmt,
+  FunDeclStmt,
   IfStmt,
   PrintStmt,
+  ReturnStmt,
   Stmt,
   StmtVisitor,
   VarDeclStmt,
   WhileStmt,
 } from '../ast/stmt';
 import { Environment } from './environment';
+import { LoxCallable } from './callable';
+import { Clock } from './builtins';
+import { LoxFunction } from './lox-function';
+import { Return } from './return';
 
 export interface InterpreterOpts {
   printLastValue: boolean;
 }
+export const globals = new Environment();
 export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
   public lastValue = null;
   public printLastValue = false;
-  private environment = new Environment();
-  constructor(private reporter: ErrorReporter) {}
+  private environment = globals;
+
+  constructor(private reporter: ErrorReporter) {
+    globals.define('clock', new Clock());
+  }
+
   private evaluate(expr: Expr) {
     return expr.accept(this);
   }
@@ -39,7 +51,7 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     return stmt.accept(this);
   }
 
-  private executeBlock(stmtList: Stmt[], executionEnv: Environment) {
+  executeBlock(stmtList: Stmt[], executionEnv: Environment) {
     console.assert(executionEnv, 'Missing executionEnv');
     const enclosing = this.environment;
     try {
@@ -84,6 +96,14 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     }
     this.environment.define(identifier.lexeme, initialValue);
   }
+
+  visitFunDeclStmt(funDeclStmt: FunDeclStmt) {
+    this.environment.define(
+      funDeclStmt.name.lexeme,
+      new LoxFunction(funDeclStmt, this.environment),
+    );
+  }
+
   visitVarExpr(expr: Variable) {
     return this.environment.get(expr.name);
   }
@@ -116,6 +136,31 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     return null;
   }
 
+  visitCallExpr(expr: Call) {
+    const calleeValue = this.evaluate(expr.callee);
+
+    // callable objs have loxCall method
+    if (typeof calleeValue.loxCall !== 'function') {
+      throw new RuntimeError(
+        expr.paren,
+        'Can only call functions and classes.',
+      );
+    }
+
+    const loxFn = calleeValue as LoxCallable;
+    if (expr.args.length !== loxFn.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${loxFn.arity()} arguments but got ${expr.args.length}.`,
+      );
+    }
+
+    return loxFn.loxCall(
+      this,
+      expr.args.map((arg) => this.evaluate(arg)),
+    );
+  }
+
   visitLogicalExpr(expr: Logical) {
     const leftValue = this.evaluate(expr.left);
     const leftValuIsTruthy = this.isTruthy(leftValue);
@@ -141,6 +186,16 @@ export class Interpreter implements ExprVisitor<unknown>, StmtVisitor<void> {
     this.lastValue = value;
     console.log(this.stringify(value));
   }
+
+  visitReturnStmt(returnStmt: ReturnStmt) {
+    let value = null;
+    if (returnStmt.value) {
+      value = this.evaluate(returnStmt.value);
+    }
+
+    throw new Return(value);
+  }
+
   visitBinaryExpr(expr: Binary) {
     const left = this.evaluate(expr.left);
     const right = this.evaluate(expr.right);

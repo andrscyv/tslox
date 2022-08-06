@@ -12,6 +12,8 @@ export interface StmtVisitor<R> {
   visitBlockStmt: (blockStmt: BlockStmt) => R;
   visitIfStmt: (ifStmt: IfStmt) => R;
   visitWhileStmt: (whileStmt: WhileStmt) => R;
+  visitFunDeclStmt: (funDeclStmt: FunDeclStmt) => R;
+  visitReturnStmt: (returnStmt: ReturnStmt) => R;
 }
 
 export class ExprStmt implements Stmt {
@@ -32,6 +34,17 @@ export class VarDeclStmt implements Stmt {
   constructor(public identifier: Token, public initializer: Expr = null) {}
   accept<R>(visitor: StmtVisitor<R>) {
     return visitor.visitVarDeclStmt(this);
+  }
+}
+
+export class FunDeclStmt implements Stmt {
+  constructor(
+    public name: Token,
+    public params: Token[],
+    public body: Stmt[],
+  ) {}
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitFunDeclStmt(this);
   }
 }
 
@@ -57,5 +70,12 @@ export class WhileStmt implements Stmt {
   constructor(public condition: Expr, public body: Stmt) {}
   accept<R>(visitor: StmtVisitor<R>) {
     return visitor.visitWhileStmt(this);
+  }
+}
+
+export class ReturnStmt implements Stmt {
+  constructor(public keyword: Token, public value: Expr) {}
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitReturnStmt(this);
   }
 }
